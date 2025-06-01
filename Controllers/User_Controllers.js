@@ -207,6 +207,9 @@ const emailHTML = `
       try {
         const {code} = req.body;
         console.log("this is code ",code);
+          console.log("DEBUG: GOOGLE_CLIENT_ID =", process.env.GOOGLE_CLIENT_ID);
+    console.log("DEBUG: GOOGLE_CLIENT_SECRET =", process.env.GOOGLE_CLIENT_SECRET ? "Loaded (not displayed)" : "UNDEFINED/EMPTY"); // לא להדפיס את הסוד עצמו
+    console.log("DEBUG: GOOGLE_REDIRECT_URI =", process.env.GOOGLE_REDIRECT_URI);
         let user ={};
         let newUser={};
 
