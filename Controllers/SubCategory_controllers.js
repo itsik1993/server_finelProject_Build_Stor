@@ -61,6 +61,36 @@ export default {
       });
     }
   },
+   getAllSubCategoryNoPagination: async (req, res) => {
+    // const { page = 1, limit = 10 } = req.query;
+    const count = await SubCategories_model.countDocuments();
+
+    // const isLimit = limit === 0 ? count : limit;
+
+    try {
+
+      const SubCategory = await SubCategories_model.find()
+        .sort({ createdAt: -1 })
+        // .skip((page - 1) * limit)
+        // .limit(isLimit);
+        // console.log(Math.ceil(count / limit),"cccccccc")
+
+      res.status(200).json({
+        success: true,
+        message: "Success get all SubCategory",
+        data:SubCategory,
+        // pages: (Math.ceil(count / limit))
+       
+      });
+      
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: "not Success add category",
+        error: error,
+      });
+    }
+  },
   updateSubCategory: async (req, res) => {
 
     const subcategoryId = req.params.id;
