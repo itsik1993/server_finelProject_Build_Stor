@@ -46,7 +46,7 @@ const emailHTML = `
             
             <!-- Button -->
             <div style="text-align: center; margin: 30px 0;">
-              <a href="http://localhost:3000/Users/verify-email?email=${user.user_email}&token=${user.verificationToken}" 
+              <a href="${process.env.SERVER_DOMAIM}/Users/verify-email?email=${user.user_email}&token=${user.verificationToken}" 
                  style="background-color: #007bff; color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
                 Verify Email
               </a>
