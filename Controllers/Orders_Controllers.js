@@ -70,7 +70,7 @@ const orderItemsHTML = products.map(item => {
         <p style="margin-top: 20px;">קיבלת אישור על הזמנתך בדוא"ל שסיפקת: ${req.body.order_costumer_mail}.</p>
         <p>נעדכן אותך כאשר ההזמנה תהיה בדרכה אליך.</p>
     <div style="text-align: center; margin: 30px 0;">
-          <a href="http://localhost:5174"
+          <a href="${process.env.CLIENT_DOMAIN}"
             style="background-color: #007bff; color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
             לכניסה לאתר
           </a>

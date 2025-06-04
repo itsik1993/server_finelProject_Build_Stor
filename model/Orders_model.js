@@ -23,6 +23,10 @@ const orders_Schema = new Schema({
             type:String,
             required:false
         },
+          postal_code: {
+            type: Number,
+        },
+        
     },
     order_costumer_phone:{
         type:String,
@@ -57,7 +61,7 @@ const orders_Schema = new Schema({
                 type: Schema.Types.ObjectId,  // חייב להיות מוגדר כ-ObjectId
                  ref: "Products"   // חייב להיות מוגדר איזה מודל הוא מפנה אליו
             },
-            order_quantity:{
+            quantity:{
                 type:Number,
                 default:1
             },
