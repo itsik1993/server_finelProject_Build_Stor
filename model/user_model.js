@@ -7,11 +7,13 @@ import { nanoid } from 'nanoid';
 const users_Schema = new Schema({
     user_firstname: {
         type: String,
-        required: true
+        required: true,
+        default: "User"
     },
     user_lastname: {
         type: String,
-        required: true
+        required: true,
+        default: "User"
     },
 
     user_email: {
