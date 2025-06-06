@@ -893,6 +893,17 @@ export default {
       //   });
       // }
       console.log(newVerificationToken, "this is the replacement email");
+
+      const useremail = await User_model.findOne({user_email: replacementEmail });
+      if (useremail) {
+        console.log("מעולה שנכשל");
+        return res.status(400).json({
+          success: false,
+          message: "לא ניתן לבצע את השינוי למייל הנוכחי",
+          error: "המייל כבר קיים במערכת",
+        });
+      }
+
       // עדכון המשתמש
       const updatedUser = await User_model.findByIdAndUpdate(
         id,
@@ -924,7 +935,7 @@ export default {
             
             <!-- Button -->
             <div style="text-align: center; margin: 30px 0;">
-              <a href="http://localhost:3000/Users/verify-email?email=${updatedUser.user_email}&token=${updatedUser.verificationToken}" 
+              <a href="${process.env.SERVER_DOMAIM}/verify-email?email=${updatedUser.user_email}&token=${updatedUser.verificationToken}" 
                  style="background-color: #007bff; color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
                 Verify Email
               </a>
