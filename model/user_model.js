@@ -112,7 +112,8 @@ const users_Schema = new Schema({
 
 
 users_Schema.pre("save", async function (next) {
-    if(this.SignUpProvider==="Credential"){
+    // בדוק אם הסיסמה שונתה ואם ההרשמה היא דרך Credential
+    if(this.SignUpProvider === "Credential" && this.isModified('user_password')){
         this.user_password = await hash(this.user_password, 10);
     }
     next();
