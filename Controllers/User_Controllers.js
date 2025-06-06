@@ -42,18 +42,18 @@ export default {
           <div style="margin-bottom: 30px; color: #444444;">
             <h1 style="color: #333333; font-size: 24px; margin-bottom: 20px;">Verify Your Email</h1>
             <p>Dear  ${user.user_firstname}    ${user.user_lastname},</p>
-            <p>Thank you for registering! Please verify your email address by clicking the button below:</p>
+            <p>תודה שנרשמת לאתר, כדי להתחיל להנות ולהיכנס לאתר עליך לבצע אימות עי  לחיצה על הפתור למטה:</p>
             
             <!-- Button -->
             <div style="text-align: center; margin: 30px 0;">
               <a href="${process.env.SERVER_DOMAIM}/Users/verify-email?email=${user.user_email}&token=${user.verificationToken}" 
                  style="background-color: #007bff; color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
-                Verify Email
+                אימות החשבון
               </a>
             </div>
             
-            <p>If you did not create an account, please ignore this email.</p>
-            <p>This link will expire in 24 hours.</p>
+            <p>אם לא ביצעת את ההרשמה ניתן להתעלם ממייל זה</p>
+            <p>הלינק פג תוקף בתוך 24 שעות.</p>
           </div>
 
           <!-- Footer -->
@@ -68,7 +68,7 @@ export default {
       transporter.sendMail({
         from: process.env.MAIL_AUTH_USER, // sender address
         to: user.user_email,
-        subject: "verification Email", // Subject line
+        subject: "אימות חשבון", // Subject line
         // text: "Hello world?", // plain text body
         html: emailHTML, // html body
       });
@@ -256,7 +256,21 @@ export default {
 
 
         ])
-        .populate("user_whishlist"); // כדי להחזיר פרטים מלאים;
+        // .populate("user_whishlist"); // כדי להחזיר פרטים מלאים;
+          .populate({
+    path: "user_whishlist", // נניח שזה השם הנכון של השדה במודל המשתמש
+    model: "Products", // מאיזה מודל לשלוף את הפריטים ב-whishlist (המוצרים)
+    populate: [
+      {
+        path: "product_category", // השדה בתוך מודל המוצר שמכיל את ID הקטגוריה
+        model: "Categories", // המודל של הקטגוריות
+      },
+      {
+        path: "product_Subcategory", // השדה בתוך מודל המוצר שמכיל את ID התת-קטגוריה
+        model: "SubCategories", // המודל של התת-קטגוריות
+      },
+    ],
+  });
       console.log(userExist, "this is the user exist");
       if (!userExist) {
         user = {
@@ -330,7 +344,23 @@ export default {
           }
 
         ])
-        .populate("user_whishlist")
+        // .populate("user_whishlist")
+       
+          .populate({
+    path: "user_whishlist", // נניח שזה השם הנכון של השדה במודל המשתמש
+    model: "Products", // מאיזה מודל לשלוף את הפריטים ב-whishlist (המוצרים)
+    populate: [
+      {
+        path: "product_category", // השדה בתוך מודל המוצר שמכיל את ID הקטגוריה
+        model: "Categories", // המודל של הקטגוריות
+      },
+      {
+        path: "product_Subcategory", // השדה בתוך מודל המוצר שמכיל את ID התת-קטגוריה
+        model: "SubCategories", // המודל של התת-קטגוריות
+      },
+    ],
+  });
+
       console.log(user, "this is the user found");
 
       // if(!user.verifyEmail) throw new Error("You Must Verify to Email!!");
@@ -393,7 +423,24 @@ export default {
       if (!decode) throw new Error("Token Not Valid");
       const user = await User_model.findOne({
         user_email: decode.user_email,
-      }).populate("user_shopping_cart._id").populate("user_orders_history").populate("user_whishlist"); // כדי להחזיר פרטים מלאים;
+      }).populate("user_shopping_cart._id")
+      .populate("user_orders_history")
+      // .populate("user_whishlist");
+       // כדי להחזיר פרטים מלאים;
+         .populate({
+    path: "user_whishlist", // נניח שזה השם הנכון של השדה במודל המשתמש
+    model: "Products", // מאיזה מודל לשלוף את הפריטים ב-whishlist (המוצרים)
+    populate: [
+      {
+        path: "product_category", // השדה בתוך מודל המוצר שמכיל את ID הקטגוריה
+        model: "Categories", // המודל של הקטגוריות
+      },
+      {
+        path: "product_Subcategory", // השדה בתוך מודל המוצר שמכיל את ID התת-קטגוריה
+        model: "SubCategories", // המודל של התת-קטגוריות
+      },
+    ],
+  });
       console.log(user, "this is the user found in authenticate");
       req.user = decode;
       res.status(200).json({
@@ -549,20 +596,31 @@ export default {
       const count = await User_model.countDocuments();
       const isLimit = limit === 0 ? count : limit;
       // console.log("getAllCategory")
-      const users = await User_model.find()
-        .sort({ createdAt: -1 })
-        .skip((page - 1) * limit)
-        .limit(isLimit)
-        .populate("user_shopping_cart._id")
-        // .populate("user_orders_history")
-        .populate([
-          {
-            path: "user_orders_history", populate:
-              { path: "order_products._id", model: "Products" }
-          }
-
-        ])
-        .populate("user_whishlist")
+ const users = await User_model.find()
+  .sort({ createdAt: -1 })
+  .skip((page - 1) * limit)
+  .limit(isLimit)
+  .populate("user_shopping_cart._id") // נשאר כפי שהיה, בהנחה שזה ID של מוצר בסל הקניות
+  .populate([
+    {
+      path: "user_orders_history",
+      populate: { path: "order_products._id", model: "Products" },
+    },
+  ])
+  .populate({
+    path: "user_whishlist", // נניח שזה השם הנכון של השדה במודל המשתמש
+    model: "Products", // מאיזה מודל לשלוף את הפריטים ב-whishlist (המוצרים)
+    populate: [
+      {
+        path: "product_category", // השדה בתוך מודל המוצר שמכיל את ID הקטגוריה
+        model: "Categories", // המודל של הקטגוריות
+      },
+      {
+        path: "product_Subcategory", // השדה בתוך מודל המוצר שמכיל את ID התת-קטגוריה
+        model: "SubCategories", // המודל של התת-קטגוריות
+      },
+    ],
+  });
       // פה אני צריך לעשות POPULAT פנימי כדי להביא את המוצרים כי שמור לי רק ID
 
       res.status(200).json({
@@ -872,8 +930,7 @@ export default {
               </a>
             </div>
             
-            <p>If you did not create an account, please ignore this email.</p>
-            <p>This link will expire in 24 hours.</p>
+            <p>אם לא ביצעת שינוי - אנא השב למייל זה וניצור עימך קשר בהקדם</p>
           </div>
 
           <!-- Footer -->
