@@ -9,28 +9,36 @@ export default {
     try {
       const { id } = req.params;
       const{orderdata}=req.body
-    console.log(id,"הרגע של יצירת ההזמנה")
-    console.log(orderdata," orderdata הרגע של יצירת ההזמנה")
+    // console.log(id,"הרגע של יצירת ההזמנה")
+    // console.log(orderdata," orderdata הרגע של יצירת ההזמנה")
 
-    const order = await Order_model.create(req.body);
-    const products =[...req.body.order_products]
+    const order = await Order_model.create(orderdata);
+    const products =[...orderdata.order_products]
+  console.log(products , "print products")
+
 // יצירת שורות הטבלה באופן דינמי
 const orderItemsHTML = products.map(item => {
-    const itemTotalPrice = item.quantity * item._id.product_costumer_price;
-  // totalOrderPrice += itemTotalPrice; // צבירת הסכום הכולל
- 
+  // קביעת נתיבי המוצר בצורה דינמית
+  const productName = item.product_name? item.product_name : item._id.product_name  ;
+  const productPrice = item.product_costumer_price ? item.product_costumer_price :item._id.product_costumer_price  ;
+  const productImage = item.product_image ?item.product_image : item._id.product_image ;
 
+  const itemTotalPrice = Number(item.quantity) * Number(productPrice);
+console.log(itemTotalPrice,"itemTotalPrice")
+console.log(productName,"productName")
+console.log(productPrice,"productPrice")
   return `
     <tr>
-      <td style="padding: 8px; border: 1px solid #ddd;">${item._id.product_name}</td>
+      <td style="padding: 8px; border: 1px solid #ddd;">${productName}</td>
       <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${item.quantity}</td>
-      <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">₪${item._id.product_costumer_price.toFixed(2)}</td>
-      <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">₪${itemTotalPrice.toFixed(2)}</td>
+      <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">₪${Number(productPrice).toFixed(2)}</td>
+      <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">₪${Number(itemTotalPrice).toFixed(2)}</td>
       <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">
-        <img src="${item._id.product_image}" alt="${item._id.product_name}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;">
+        <img src="${productImage}" alt="${productName}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;">
       </td>
     </tr>
-  `;}).join('');
+  `;
+}).join('');
  // חשוב לחבר את המערך למחרוזת אחת
 
   const emailHTML = `
@@ -62,12 +70,12 @@ const orderItemsHTML = products.map(item => {
             ${orderItemsHTML} </tbody>
           <tfoot>
             <tr>
-              <td colspan="3" style="padding: 8px; border: 1px solid #ddd; text-align: right; font-weight: bold;">סה"כ לתשלום:₪${req.body.order_total_price.toFixed(2)}</td>
+              <td colspan="3" style="padding: 8px; border: 1px solid #ddd; text-align: right; font-weight: bold;">סה"כ לתשלום:₪${Number(orderdata.order_total_price).toFixed(2)}</td>
              
             </tr>
           </tfoot>
         </table>
-        <p style="margin-top: 20px;">קיבלת אישור על הזמנתך בדוא"ל שסיפקת: ${req.body.order_costumer_mail}.</p>
+        <p style="margin-top: 20px;">קיבלת אישור על הזמנתך בדוא"ל שסיפקת: ${orderdata.order_costumer_mail}.</p>
         <p>נעדכן אותך כאשר ההזמנה תהיה בדרכה אליך.</p>
     <div style="text-align: center; margin: 30px 0;">
           <a href="${process.env.CLIENT_DOMAIN}"
@@ -87,7 +95,7 @@ const orderItemsHTML = products.map(item => {
 
   transporter.sendMail({
         from: process.env.MAIL_AUTH_USER, // sender address
-        to: req.body.order_costumer_mail,
+        to: orderdata.order_costumer_mail,
         subject: "order confirmation", // Subject line
         // text: "Hello world?", // plain text body
         html: emailHTML, // html body
