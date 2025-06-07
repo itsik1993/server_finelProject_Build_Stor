@@ -108,6 +108,8 @@ export default {
       //take from the query the email and the token
       const { email, token } = req.query;
       //check if the email and the token are exist in the document and update the document
+      console.log(email, "this is the email and token");
+      console.log( token, "this is the email and token");
       const user = await User_model.findOne(
         {
           //this is the condition that we want to check
@@ -182,17 +184,134 @@ export default {
       });
       console.log(token2, "this is the token");
 
-      // הקוד המתוקן - שימוש נכון בפונקציית res.cookie עם האופציות כפרמטר שלישי
+
+         // הגדרת הcookie
       res.cookie("token", token2, {
         httpOnly: true,
         secure: true,
         maxAge: 1000 * 60 * 60 * 1,
       });
-      res.send("המייל  אומת בהצלחה אתה יכול להיכנס לאתר  ");
+    // קבלת המשתמש המעודכן עם כל הפרטים המלאים (כמו בפונקציית authenticate)
+      const updatedUser = await User_model.findOne({
+        user_email: user.replacementEmail || user.user_email,
+      }).populate("user_shopping_cart._id")
+      .populate([
+        {
+          path: "user_orders_history", 
+          populate: { path: "order_products._id", model: "Products" }
+        }
+      ])
+      .populate({
+        path: "user_whishlist",
+        model: "Products",
+        populate: [
+          {
+            path: "product_category",
+            model: "Categories",
+          },
+          {
+            path: "product_Subcategory",
+            model: "SubCategories",
+          },
+        ],
+      });
 
+      // שליחת דף HTML עם הודעת הצלחה ומעבר לאתר
+      const successHTML = `
+        <!DOCTYPE html>
+        <html dir="rtl" lang="he">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>אימות מייל הושלם</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              background-color: #f6f6f6;
+              margin: 0;
+              padding: 20px;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              min-height: 100vh;
+            }
+            .container {
+              max-width: 500px;
+              background-color: #ffffff;
+              padding: 40px;
+              border-radius: 10px;
+              box-shadow: 0 0 10px rgba(0,0,0,0.1);
+              text-align: center;
+            }
+            .success-icon {
+              color: #28a745;
+              font-size: 48px;
+              margin-bottom: 20px;
+            }
+            h1 {
+              color: #333333;
+              margin-bottom: 20px;
+            }
+            p {
+              color: #666666;
+              margin-bottom: 30px;
+              line-height: 1.6;
+            }
+            .btn {
+              background-color: #007bff;
+              color: white;
+              padding: 12px 30px;
+              text-decoration: none;
+              border-radius: 5px;
+              display: inline-block;
+              margin: 10px;
+              transition: background-color 0.3s;
+            }
+            .btn:hover {
+              background-color: #0056b3;
+            }
+            .countdown {
+              color: #999;
+              font-size: 14px;
+              margin-top: 20px;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="success-icon">✓</div>
+            <h1>המייל אומת בהצלחה!</h1>
+            <p>החשבון שלך אומת בהצלחה. תוכל כעת להיכנס לאתר ולהתחיל להנות מהשירותים שלנו.</p>
+            
+            <a href="${process.env.CLIENT_DOMAIN || 'http://localhost:5174'}" class="btn">
+              היכנס לאתר
+            </a>
+            
+            <div class="countdown">
+              מעבר אוטומטי לאתר בעוד <span id="countdown">5</span> שניות...
+            </div>
+          </div>
 
+          <script>
+            // מעבר אוטומטי לאתר אחרי 5 שניות
+            let countdown = 5;
+            const countdownElement = document.getElementById('countdown');
+            
+            const timer = setInterval(() => {
+              countdown--;
+              countdownElement.textContent = countdown;
+              
+              if (countdown <= 0) {
+                clearInterval(timer);
+                window.location.href = '${process.env.CLIENT_DOMAIN || 'http://localhost:5174'}';
+              }
+            }, 1000);
+          </script>
+        </body>
+        </html>
+      `;
 
-
+      res.status(200).send(successHTML);
 
     } catch (error) {
       res.status(401).json({
@@ -892,7 +1011,7 @@ export default {
       //     error: "Missing required parameters"
       //   });
       // }
-      console.log(newVerificationToken, "this is the replacement email");
+      console.log(replacementEmail, "this is the replacement email");
 
       const useremail = await User_model.findOne({user_email: replacementEmail });
       if (useremail) {
@@ -935,7 +1054,8 @@ export default {
             
             <!-- Button -->
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${process.env.SERVER_DOMAIM}/verify-email?email=${updatedUser.user_email}&token=${updatedUser.verificationToken}" 
+              <a href="${process.env.SERVER_DOMAIM}/Users//verify-email?email=${updatedUser.user_email}&token=${updatedUser.verificationToken}" 
+
                  style="background-color: #007bff; color: #ffffff; padding: 12px 30px; text-decoration: none; border-radius: 5px; display: inline-block;">
                 Verify Email
               </a>
